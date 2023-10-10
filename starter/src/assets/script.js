@@ -39,6 +39,10 @@ const products = [];
    - strawberry.jpg by Allec Gomes
 */
 
+function getProductByIdFromList(productId, productList) {
+  return productList.find((product) => product.productId === productId);
+}
+
 /* Declare an empty array named cart to hold the items in the cart */
 const cart = [];
 /* Create a function named addProductToCart that takes in the product productId as an argument
@@ -47,78 +51,115 @@ const cart = [];
   - if the product is not already in the cart, add it to the cart
 */
 function addProductToCart(productId) {
-  products.forEach(product => {
-    if (productId === product.productId) {
-      product.quantity +=1;
-      if (!cart.includes(product)) {
-        cart.push(product);
-      }
-    }
-  });
+  let product = getProductByIdFromList(productId, products);
+
+  if(!cart.includes(product)){
+    cart.push(product);
+  }
+  increaseQuantity(productId);
 }
 /* Create a function named increaseQuantity that takes in the productId as an argument
   - increaseQuantity should get the correct product based on the productId
   - increaseQuantity should then increase the product's quantity
 */
+
 function increaseQuantity(productId) {
-  const productToIncrease = cart.find((product) => product.productId === productId);
-  if (productToIncrease) {
-    productToIncrease.quantity++;
-  }
+  let product = getProductByIdFromList(productId, cart);
+  product.quantity += 1;
+
 }
+
 /* Create a function named decreaseQuantity that takes in the productId as an argument
   - decreaseQuantity should get the correct product based on the productId
   - decreaseQuantity should decrease the quantity of the product
   - if the function decreases the quantity to 0, the product is removed from the cart
 */
+
 function decreaseQuantity(productId) {
-  const productToDecrease = cart.find((product) => product.productId === productId);
-  productToDecrease.quantity--;
-  if (productToDecrease.quantity === 0) {
-    const productIndexToRemove = cart.findIndex((product) => product.productId === productId);
-    if (productIndexToRemove !== -1) {
-      cart.splice(productIndexToRemove, 1)
-    }
+  let product = getProductByIdFromList(productId, cart);
+
+  product.quantity -= 1;
+
+  if (product.quantity === 0) {
+    removeProductFromCart(product.productId);
   }
 }
+
 /* Create a function named removeProductFromCart that takes in the productId as an argument
   - removeProductFromCart should get the correct product based on the productId
   - removeProductFromCart should update the product quantity to 0
   - removeProductFromCart should remove the product from the cart
 */
+
 function removeProductFromCart(productId) {
-  const productToRemove = cart.find((product) => product.productId === productId);
-  productToRemove.quantity = 0;
-  const productIndexToRemove = cart.findIndex((product) => product.productId === productId);
-  if (productIndexToRemove !== -1) {
-    cart.splice(productIndexToRemove, 1)
-  }
+  let product = getProductByIdFromList(productId, cart);
+
+  product.quantity = 0;
+
+  cart.splice(cart.indexOf(product), 1);
 }
+
 /* Create a function named cartTotal that has no parameters
   - cartTotal should iterate through the cart to get the total of all products
   - cartTotal should return the sum of the products in the cart
 */
+
 function cartTotal() {
   let total = 0;
-  cart.forEach((product) => {
+  cart.forEach(product => {
     total += product.price * product.quantity;
   });
   return total;
 }
+
 /* Create a function called emptyCart that empties the products from the cart */
+
 function emptyCart() {
-  cart.length = 0;
+  cart.forEach(function (product) {
+    removeProductFromCart(product.productId);
+  });
 }
+
 /* Create a function named pay that takes in an amount as an argument
   - pay will return a negative number if there is a remaining balance
   - pay will return a positive number if money should be returned to customer
 */
+
+// Initialize a variable to keep track of the total amount paid
+let totalPaid = 0;
+
+// Define a function name 'pay' that takes an 'amount' as an argument
 function pay (amount) {
-  const total = cartTotal();
-  const change = amount - total;
-  return change;
+
+  // Add the current payment amount to the 'totalPaid' variable
+  totalPaid += amount;
+
+  // Calculate the remaining balance by subtracting the cart total from the total paid 
+  let remaining = cartTotal() - totalPaid;
+
+  // Check if the remaining amount is greater than or equal to zero
+  if (remaining >= 0) {
+    // If the payment is sufficient to cover the cart total
+
+    // Reset the 'totalPaid' to zero to prepare it for the next payment
+    totalPaid = 0;
+
+    // Empty the cart as the current payment covers the cartTotal
+    emptyCart();
+
+    // Return the remaining amount which should be zero or positive
+    return remaining;
+  }
+  else {
+
+    // If the payment is not enough to cover the cart total
+    // Return the remaining amount which will be negative
+    return remaining;
+  }
 }
+
 /* Place stand out suggestions here (stand out suggestions can be found at the bottom of the project rubric.)*/
+
 // Defalut currency
 let currency = "USD"; 
 
@@ -149,14 +190,17 @@ function updateCashElements(currency) {
     priceElement.textContent = formatCurrency(product.price, currency);
   });
 
+  // Displays cash recieved, cash returned, and remaining balance
   const cashReceivedElement = document.querySelector('.received');
   const cashReturnedElement = document.querySelector('.cash-returned');
   const remainingBalanceElement = document.querySelector('.remaining-balance');
 
+  // Formats the selected currency
   cashReceivedElement.textContent = `Cash Received: ${formatCurrency(parseFloat(cashReceivedElement.textContent.substring(currency.length + 1)), currency)}`;
   cashReturnedElement.textContent = `Cash Returned: ${formatCurrency(parseFloat(cashReturnedElement.textContent.substring(currency.length + 1)), currency)}`;
   remainingBalanceElement.textContent = `Remaining Balance: ${formatCurrency(parseFloat(remainingBalanceElement.textContent.substring(currency.length + 1)), currency)}`;
 }
+
 /* The following is for running unit tests. 
    To fully complete this project, it is expected that all tests pass.
    Run the following command in terminal to run tests
